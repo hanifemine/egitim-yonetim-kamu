@@ -18,10 +18,38 @@ import { useState } from "react"
 export function Header() {
   const pathname = usePathname()
   const [isLoggedIn, setIsLoggedIn] = useState(true) // Mock login state
-  const [notifications] = useState(3) // Mock notifications
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      text: "Yeni bir eğitim atandı: Liderlik Gelişimi",
+      time: "15 dakika önce",
+      read: false,
+      link: "/courses/leadership-development",
+    },
+    {
+      id: 2,
+      text: "Mesajınız var: Proje Grubu",
+      time: "1 saat önce",
+      read: false,
+      link: "/messages",
+    },
+    {
+      id: 3,
+      text: "Başarınızın kilidi açıldı: Usta Öğrenen",
+      time: "dün",
+      read: true,
+      link: "/achievements",
+    },
+  ])
+
+  const unreadNotifications = notifications.filter((n) => !n.read).length
+
+  const handleNotificationOpen = () => {
+    setNotifications(notifications.map((n) => ({ ...n, read: true })))
+  }
 
   const navigation = [
-    { name: "Ana Sayfa", href: "/", icon: Home },
+    { name: "Ana Sayfa", href: "/dashboard", icon: Home },
     { name: "Kullanıcılar", href: "/users", icon: Users },
     { name: "Eğitimler", href: "/courses", icon: BookOpen },
     { name: "Raporlar", href: "/reports", icon: BarChart3 },
@@ -67,7 +95,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-4">
-            <Link href="/" className="flex items-center space-x-2">
+            <Link href="/dashboard" className="flex items-center space-x-2">
               <BookOpen className="h-8 w-8 text-red-600" />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">T.C. İletişim Başkanlığı</h1>
@@ -100,14 +128,30 @@ export function Header() {
           {/* User Menu */}
           <div className="flex items-center space-x-4">
             {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="h-5 w-5" />
-              {notifications > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-600">
-                  {notifications}
-                </Badge>
-              )}
-            </Button>
+            <DropdownMenu onOpenChange={(open) => open && handleNotificationOpen()}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {unreadNotifications > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-600">
+                      {unreadNotifications}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-80" align="end">
+                <div className="p-2 font-bold">Bildirimler</div>
+                <DropdownMenuSeparator />
+                {notifications.map((notification) => (
+                  <Link key={notification.id} href={notification.link || "#"} passHref>
+                    <DropdownMenuItem className="flex flex-col items-start">
+                      <p className="text-sm">{notification.text}</p>
+                      <p className="text-xs text-gray-500">{notification.time}</p>
+                    </DropdownMenuItem>
+                  </Link>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* User Dropdown */}
             <DropdownMenu>
@@ -131,14 +175,19 @@ export function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Award className="mr-2 h-4 w-4" />
-                  <span>Başarılarım</span>
+                  <Link href="/achievements">Başarılarım</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Ayarlar</span>
+                  <Link href="/settings">Ayarlar</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsLoggedIn(false)}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setIsLoggedIn(false)
+                    window.location.href = "/"
+                  }}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Çıkış Yap</span>
                 </DropdownMenuItem>
